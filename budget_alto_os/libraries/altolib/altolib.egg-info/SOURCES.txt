@@ -1,0 +1,11 @@
+LICENSE
+README.md
+setup.py
+altolib/__init__.py
+altolib/altolib.py
+altolib.egg-info/PKG-INFO
+altolib.egg-info/SOURCES.txt
+altolib.egg-info/dependency_links.txt
+altolib.egg-info/not-zip-safe
+altolib.egg-info/requires.txt
+altolib.egg-info/top_level.txt

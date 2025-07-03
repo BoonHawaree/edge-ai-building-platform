@@ -1,0 +1,30 @@
+Metadata-Version: 2.1
+Name: altolib
+Version: 0.3
+Summary: Library to facilitate the implemantation of agents conformant to the AltoTech schema.
+Home-page: http://github.com/frawau/altolib
+Author: François Wautier
+Author-email: francois@wautier.eu
+License: MIT
+Keywords: Volttron,Alto,IoT,Automation
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# altolib
+
+A library to facilatate the implementation of Volttron agents conforming to the AltoTech schema.
+
+
+# Installation
+
+    python3 setup.py install
+
+# API
+
+To be documented.
+
+

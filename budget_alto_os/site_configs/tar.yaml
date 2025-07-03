@@ -1,0 +1,6 @@
+deployment_config:
+  installed_agents:
+    timescaledb: true
+
+site_id: tar
+timezone: Asia/Bangkok

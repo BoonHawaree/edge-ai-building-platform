@@ -1,0 +1,11 @@
+agents:
+  listener:
+    source: $VOLTTRON_ROOT/examples/ListenerAgent
+    config: $CONFIG/listener.config
+    tag: listener
+config:
+  # bind-web-address: https://0.0.0.0:8443
+  instance-name: volttron1
+  message-bus: zmq
+  vip-address: tcp://0.0.0.0:22916
+  # volttron-central-address: https://0.0.0.0:8443

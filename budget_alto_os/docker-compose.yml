@@ -1,0 +1,38 @@
+version: '3.4'
+
+services:
+  alto_os:
+    # image: eclipsevolttron/volttron:develop
+    container_name: alto_os
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    # network_mode: host
+    volumes:
+        - volttron1-volume:/home/volttron/db
+        - ./site_configs:/code/volttron/site_configs
+    environment:
+      - CONFIG=/home/volttron/configs
+      - LOCAL_USER_ID=1000
+      - SITE_ID=${SITE_ID}
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: timescaledb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Magicalmint@636
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+      - ./Agents/TimescaleDB/timescaledb/sql/create_tables/brick_schema.sql:/docker-entrypoint-initdb.d/01_brick_schema.sql
+      - ./Agents/TimescaleDB/timescaledb/sql/create_tables/brick_sample_data.sql:/docker-entrypoint-initdb.d/02_brick_sample_data.sql
+
+
+volumes:
+  volttron1-volume:
+    name: volttron1-data
+  timescaledb-data:
+    name: timescaledb-data

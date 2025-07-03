@@ -1,0 +1,8 @@
+volttron_agents:
+  timescaledb:
+    db_host: timescaledb  # Optional field, default is localhost
+    db_name: postgres  # Optional field, default is postgres
+    db_user: postgres  # Optional field, default is postgres
+    db_password: Magicalmint@636  # Optional field, default is Magicalmint@636
+    db_port: 5432  # Optional field, default is 5433
+    retention_interval: 1 year  # Optional field, default is 1 year

@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  alto_os:
+    # image: eclipsevolttron/volttron:develop
+    container_name: alto_os
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    volumes:
+        - volttron1-volume:/home/volttron/db
+        - ../site_configs:/home/volttron/site_configs
+        - ./:/home/volttron/alto_os
+    environment:
+      - CONFIG=/home/volttron/configs
+      - LOCAL_USER_ID=1000
+      - SITE_ID=${SITE_ID}
+
+volumes:
+  volttron1-volume:
+    name: volttron1-data
