@@ -4,7 +4,8 @@ import psycopg2
 from volttron.platform.agent import utils
 from volttron.platform.vip.agent import Agent, Core
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
+
 
 utils.setup_logging()
 logger = logging.getLogger(__name__)
@@ -29,7 +30,8 @@ class PowerMeterSimAgent(Agent):
             for meter_id in range(1, self.meter_count + 1):
                 data = {
                     "meter_id": meter_id,
-                    "power": round(random.uniform(0.5, 5.0), 2)  # kW
+                    "power": round(random.uniform(0.5, 5.0), 2),  # kW
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }
                 logger.info(f"⚡ Publishing data for meter {meter_id}: {data}")
                 self.vip.pubsub.publish(

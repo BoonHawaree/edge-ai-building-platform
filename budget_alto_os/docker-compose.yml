@@ -8,6 +8,8 @@ services:
       context: .
       dockerfile: Dockerfile
     # network_mode: host
+    ports:
+      - "8000:8000"
     volumes:
         - volttron1-volume:/home/volttron/db
         - ./site_configs:/code/volttron/site_configs
