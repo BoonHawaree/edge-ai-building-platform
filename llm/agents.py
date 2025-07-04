@@ -1,6 +1,8 @@
 from langgraph.graph import StateGraph
 from langchain_ollama import ChatOllama
-from langchain.tools import tool
+from langchain_core.messages import SystemMessage
+from langgraph.prebuilt import tools_condition, ToolNode
+from langgraph.graph import START
 import httpx
 import asyncio
 
@@ -14,7 +16,7 @@ You are an expert building automation AI assistant. Your role is to:
 4. Optimize energy efficiency while maintaining comfort
 5. Provide clear, actionable recommendations for building operators
 
-  You must always call the available tools to get real data before making any recommendations. Never make up or assume values.
+You must always call the available tools to get real data before making any recommendations. Never make up or assume values.
 
 Always consider:
 - Safety thresholds (CO2 >1200ppm = critical, temp >26°C = too hot)
@@ -24,20 +26,20 @@ Always consider:
 """
 
 # --- Tool Definitions (function calling) ---
-@tool
+
 def get_zone_current_conditions(zone: str):
     """Get current IAQ and power data for a specific building zone."""
     # Call your LLMBridge API
     resp = httpx.get(f"http://localhost:8000/api/current/iaq/{zone}")
     return resp.json()
 
-@tool
+
 def get_building_energy_status(hours: int):
     """Get current energy consumption vs daily targets."""
     resp = httpx.get(f"http://localhost:8000/api/trends/energy/{hours}")
     return resp.json()
 
-@tool
+
 def get_recent_alerts():
     """Get recent building system alerts or anomalies."""
     resp = httpx.get("http://localhost:8000/api/alerts/recent")
@@ -51,67 +53,46 @@ TOOLS = [get_zone_current_conditions, get_building_energy_status, get_recent_ale
 llm = ChatOllama(
     model="mistral:7b-instruct-v0.3-q4_0",
     temperature=0.1,
-    tools=TOOLS
 )
+llm_with_tools = llm.bind_tools(TOOLS)
+sys_msg = SystemMessage(content=SYSTEM_PROMPT)
+
+def assistant(state: dict):
+    # state["messages"] should be a list of messages so far
+    messages = state.get("messages", [])
+    # Always start with the system prompt
+    if not messages or messages[0] != sys_msg:
+        messages = [sys_msg] + messages
+    # LLM with tools
+    result = llm_with_tools.invoke(messages)
+    return {"messages": messages + [result]}
 
 # --- LangGraph State Definition ---
 from typing import TypedDict, Optional, Dict, Any
 
-class BuildingAutomationState(TypedDict):
-    request_type: str
-    zone_filter: Optional[str]
-    realtime_iaq: Optional[Dict[str, Any]]
-    realtime_power: Optional[Dict[str, Any]]
-    historical_data: Optional[Dict[str, Any]]
-    building_context: str
-    analysis_results: Optional[Dict[str, Any]]
-    recommendations: Optional[Any]
-    confidence_score: Optional[float]
-
-# --- LangGraph Workflow Nodes ---
-async def analyze_building_data(state: BuildingAutomationState):
-    # Explicitly ask LLM to use tools
-    zone = state.get("zone_filter", "all")
-    user_msg = (
-        f"Use the available tools to get the latest IAQ and power data for zone {zone}. "
-        "Then, analyze the data and provide recommendations for building optimization."
-    )
-    result = await llm.ainvoke([
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": user_msg}
-    ])
-    state["analysis_results"] = result
-    return state
+builder = StateGraph(dict)
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(TOOLS))
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+graph = builder.compile()
 
 # Add more nodes for each use case (IAQ, energy, cross-zone, maintenance...)
 
-# --- Build the LangGraph Workflow ---
-def create_building_automation_workflow():
-    workflow = StateGraph(BuildingAutomationState)
-    workflow.add_node("analyze_building_data", analyze_building_data)
-    # Add more nodes and edges as per your sprint plan...
-    workflow.set_entry_point("analyze_building_data")
-    return workflow.compile()
-
 # --- Entrypoint for LLM requests ---
-async def process_building_automation_request(request_type, zone_filter=None):
-    initial_state = BuildingAutomationState(
-        request_type=request_type,
-        zone_filter=zone_filter,
-        realtime_iaq=None,
-        realtime_power=None,
-        historical_data=None,
-        building_context="hotel_office_10_zones_2_floors",
-        analysis_results=None,
-        recommendations=None,
-        confidence_score=None
-    )
-    workflow = create_building_automation_workflow()
-    result = await workflow.ainvoke(initial_state)
+async def process_building_automation_request(user_query: str):
+    # Start with user message
+    state = {"messages": [SystemMessage(content=SYSTEM_PROMPT), {"role": "user", "content": user_query}]}
+    result = await graph.ainvoke(state)
     return result
 
 # --- Example usage ---
 if __name__ == "__main__":
-    # For quick test
-    result = asyncio.run(process_building_automation_request("iaq_optimization", zone_filter="zone_1_1"))
+    import asyncio
+    user_query = "What is the current CO2 and temperature in zone_2_1? Should I take any action?"
+    result = asyncio.run(process_building_automation_request(user_query))
     print(result)
