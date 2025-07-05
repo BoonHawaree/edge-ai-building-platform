@@ -53,7 +53,7 @@ class BuildingDataSeeder:
             'pm_001': {'min': 15, 'max': 45, 'name': 'Floor_1'},      # Floor 1
             'pm_002': {'min': 12, 'max': 38, 'name': 'Floor_2'},      # Floor 2  
             'pm_003': {'min': 30, 'max': 85, 'name': 'Main_Building'}, # Main building
-            'pm_004': {'min': 20, 'max': 80, 'name': 'Chiller'},      # Chiller (highest)
+            'pm_004': {'min': 20, 'max': 100, 'name': 'Chiller'},      # Chiller (highest)
             'pm_005': {'min': 2, 'max': 8, 'name': 'Elevator'}        # Elevator
         }
         

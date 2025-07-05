@@ -148,13 +148,11 @@ def get_building_energy_status() -> Dict:
     """
     Get current building-wide energy consumption and daily target status.
     Includes floor-level and building infrastructure power consumption.
-    
-    Returns:
-        Dict containing comprehensive energy consumption summary
+    This tool now queries historical data for accurate consumption tracking.
     """
     print("🔧 Tool called: get_building_energy_status")
     try:
-        # Get power data from all meters based on BRICK mapping
+        # Get CURRENT power data from all meters for a real-time snapshot
         power_meters = {
             "floor_1_power": "1",      # pm_001 feeds floor_1
             "floor_2_power": "2",      # pm_002 feeds floor_2  
@@ -173,19 +171,32 @@ def get_building_energy_status() -> Dict:
                     meter_data = response.json()
                     power_data[meter_name] = meter_data
                     if "power" in meter_data:
-                        total_power += meter_data["power"]
+                        total_power += meter_data.get("power", 0)
                 else:
                     power_data[meter_name] = {"error": f"HTTP {response.status_code}"}
             except Exception as e:
                 power_data[meter_name] = {"error": str(e)}
         
-        # Calculate daily target compliance
+        # Get ACCURATE historical consumption since the start of the day
         current_hour = datetime.now().hour
-        daily_target = 2400  # kWh for entire building
-        expected_consumption_by_hour = daily_target * (current_hour / 24)
-        current_consumption_estimate = total_power * current_hour  # Simplified calculation
+        # Query for hours since midnight. Use at least 1 hour to avoid division by zero.
+        hours_to_query = max(1, current_hour)
         
-        compliance_ratio = current_consumption_estimate / expected_consumption_by_hour if expected_consumption_by_hour > 0 else 1.0
+        actual_consumption_kwh = 0
+        try:
+            historical_response = httpx.get(f"http://localhost:8000/api/historical/energy_consumption?hours_ago={hours_to_query}")
+            if historical_response.status_code == 200:
+                historical_data = historical_response.json()
+                actual_consumption_kwh = historical_data.get("total_kwh", 0)
+        except Exception as e:
+            print(f"⚠️ Could not get historical energy data: {e}")
+
+
+        # Calculate daily target compliance using accurate data
+        daily_target = 2400  # kWh for entire building
+        expected_consumption_by_hour = daily_target * (current_hour / 24.0)
+        
+        compliance_ratio = actual_consumption_kwh / expected_consumption_by_hour if expected_consumption_by_hour > 0 else 1.0
         
         return {
             "total_power_kw": total_power,
@@ -193,7 +204,7 @@ def get_building_energy_status() -> Dict:
             "daily_target_kwh": daily_target,
             "current_hour": current_hour,
             "expected_consumption_kwh": expected_consumption_by_hour,
-            "estimated_consumption_kwh": current_consumption_estimate,
+            "actual_consumption_so_far_kwh": actual_consumption_kwh,
             "target_compliance_ratio": compliance_ratio,
             "status": "on_track" if compliance_ratio <= 1.1 else "over_target" if compliance_ratio <= 1.3 else "critical",
             "timestamp": datetime.now().isoformat()
@@ -489,11 +500,8 @@ Always provide both:
 2. **Actionable Recommendations**: Specific actions for building operators with timelines
 3. **Clarity**: Always map zone number to zone name and provide the zone name in the response
 
-**Tool Selection and Usage:**
 You MUST call the appropriate tools to get real data before making any recommendations. Never assume or guess values.
-- **Prioritize Safety:** If a query mentions a potential safety issue (e.g., "high CO2", "too hot", "stuffy"), even for a single zone, your default action should be to call `check_safety_thresholds` for a complete, building-wide assessment. This ensures you don't miss other potential issues.
-- **Specific Data:** For non-safety related queries about a specific zone (e.g., "What is the power usage in the conference room?"), use `get_zone_current_conditions`.
-
+Call ONE relevant tool, then analyse the returned JSON and stop calling tools unless you need additional data.
 """
 
 # --- LangGraph Workflow Nodes ---

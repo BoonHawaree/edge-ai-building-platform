@@ -64,4 +64,25 @@ def get_latest_power_for_meter(meter_id):
                 return {"power": row["value"], "timestamp": row["timestamp"]}
     return {}
 
+def get_total_consumption_for_period(hours_ago: int) -> dict:
+    """
+    Calculates total energy consumption (kWh) from all power meters over a given period.
+    This query assumes that the `value` column for power is in kW and readings are
+    taken hourly. Therefore, summing the values provides an approximation of kWh.
+    """
+    point_ids = [f"pm_{i:03d}_power" for i in range(1, 6)]
+    query = """
+    SELECT SUM(value) as total_kwh
+    FROM sensor_data
+    WHERE point_id = ANY(%s)
+    AND timestamp >= (NOW() - %s * INTERVAL '1 hour')
+    """
+    with psycopg2.connect(**DB_CONFIG) as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query, (point_ids, hours_ago))
+            result = cur.fetchone()
+            if result and result.get('total_kwh') is not None:
+                return {"total_kwh": result['total_kwh']}
+    return {"total_kwh": 0}
+
 # Add more helpers as needed (trends, historical, etc.)

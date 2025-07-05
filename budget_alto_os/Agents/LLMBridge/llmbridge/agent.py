@@ -53,6 +53,17 @@ async def get_recent_alerts():
     agent = app.state.agent
     return {"alerts": agent.realtime_cache["alerts"][-10:]}  # Last 10 alerts
     
+@app.get("/api/historical/energy_consumption")
+async def get_historical_energy_consumption(hours_ago: int = 24):
+    """
+    Calculates total energy consumption from historical data since a given number of hours ago.
+    """
+    if hours_ago <= 0:
+        raise HTTPException(status_code=400, detail="hours_ago must be a positive integer.")
+    
+    db_data = helper.get_total_consumption_for_period(hours_ago)
+    return {"hours_ago": hours_ago, **db_data}
+
 
 @app.post("/api/analyze/iaq")
 async def analyze_iaq(req: IAQAnalysisRequest):
@@ -116,6 +127,8 @@ class LLMBridgeAgent(Agent):
             "power": message.get("power"),
             "timestamp": message.get("timestamp")
             }
+    
+    
 
 def main():
     utils.vip_main(LLMBridgeAgent, version="0.1")

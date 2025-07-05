@@ -31,3 +31,4 @@ pythermalcomfort==3.3.0
 fastapi
 uvicorn
 pydantic
+asyncpg
