@@ -1,0 +1,15 @@
+models:
+  - type: main
+    engine: ollama
+    model: qwen3:4b-q8_0 
+    parameters:
+      temperature: 0.1
+    reasoning_config:
+      remove_reasoning_traces: True
+      start_token: "<think>"
+      end_token: "</think>"
+
+rails:
+  input:
+    flows:
+      - self check input

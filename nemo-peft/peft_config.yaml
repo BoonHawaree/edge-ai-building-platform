@@ -1,0 +1,47 @@
+exp_manager:
+  checkpoint_callback_params:
+    always_save_nemo: true
+    mode: min
+    save_top_k: 1
+  create_checkpoint_callback: true
+model:
+  data:
+    chat_template: llama3
+    train_ds:
+      file_names:
+      - building_automation_dataset.jsonl
+      global_batch_size: 2
+      micro_batch_size: 1
+      num_workers: 2
+      pin_memory: true
+      shuffle: true
+  optim:
+    betas:
+    - 0.9
+    - 0.999
+    lr: 0.0001
+    name: adamw
+    weight_decay: 0.01
+  peft:
+    lora_tuning:
+      adapter_dim: 16
+      adapter_dropout: 0.05
+      adapter_model_parallel_size: 1
+      alpha: 16
+      target_modules:
+      - q_proj
+      - k_proj
+      - v_proj
+      - o_proj
+    peft_scheme: lora
+  restore_from_path: null
+trainer:
+  devices: 1
+  enable_checkpointing: true
+  limit_val_batches: 0.0
+  logger: false
+  max_epochs: 3
+  max_steps: -1
+  num_nodes: 1
+  precision: bf16-mixed
+  val_check_interval: 0.5
