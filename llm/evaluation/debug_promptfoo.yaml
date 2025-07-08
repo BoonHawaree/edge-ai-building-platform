@@ -1,0 +1,18 @@
+description: "Debug Building Automation"
+
+# Add a default prompt at the top level
+prompts:
+  - "{{query}}"
+
+providers:
+  - id: "python:custom_provider.py:call_agent"
+    config:
+      model_type: "baseline"
+
+tests:
+  - description: "Debug Test"
+    vars:
+      query: "Zone 2_3 has CO2 at 1350ppm. What should I do immediately?"
+      
+evaluateOptions:
+  maxConcurrency: 1

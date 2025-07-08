@@ -28,3 +28,7 @@ PyYAML
 wheel==0.30
 asyncio==3.4.3
 pythermalcomfort==3.3.0
+fastapi
+uvicorn
+pydantic
+asyncpg

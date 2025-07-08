@@ -1,0 +1,38 @@
+# Python virtual environments & cache
+venv/
+*/venv/
+**/venv/
+__pycache__/
+*.pyc
+*.egg-info/
+ft_venv/
+
+# AI Models, Data, Checkpoints
+*.safetensors
+*.bin
+*.onnx
+*.pt
+*.pth
+*.zip
+*.gz
+*.jsonl
+*.pckl
+
+# Logs & Large Documents
+*.log
+*.pdf
+*.pptx
+llm/finetuning/
+
+# Embedded Git Repositories
+# These should be handled as submodules if needed, not committed directly.
+llm/NeMo-Guardrails/
+llm/Qwen2.5-3B-Instruct/
+
+# OS specific
+__MACOSX/
+.DS_Store
+
+# IDE config
+.vscode/
+.idea/

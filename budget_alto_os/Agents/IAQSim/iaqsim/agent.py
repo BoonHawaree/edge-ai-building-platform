@@ -4,7 +4,7 @@ import psycopg2
 from volttron.platform.agent import utils
 from volttron.platform.vip.agent import Agent, Core, PubSub
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 utils.setup_logging()
 logger = logging.getLogger(__name__)
@@ -36,7 +36,8 @@ class IAQSimAgent(Agent):
                     "sensor_id": sensor_id,
                     "co2": random.randint(400, 1000),
                     "temperature": round(random.uniform(20, 30), 2),
-                    "humidity": round(random.uniform(30, 70), 2)
+                    "humidity": round(random.uniform(30, 70), 2),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }
                 logger.info(f"🌡️ Publishing data for sensor {sensor_id}: {data}")
                 self.vip.pubsub.publish(

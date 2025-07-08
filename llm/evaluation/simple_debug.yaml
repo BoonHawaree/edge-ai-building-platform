@@ -1,0 +1,23 @@
+description: "Simple Debug Test"
+
+providers:
+  - id: "python:custom_provider.py:call_agent"
+    config:
+      model_type: "finetuned"
+      description: "Fine-tuned model running on local PEFT server"
+  # - id: "python:custom_provider.py:call_agent"
+  #   config:
+  #     model_type: "baseline"
+
+prompts:
+  - "{{query}}"
+
+tests: file://building_test_cases.yaml
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://assertions/tool_accuracy.js
+
+evaluateOptions:
+  maxConcurrency: 1
