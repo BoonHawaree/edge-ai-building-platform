@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import statistics
 import os
 from dotenv import load_dotenv
+import nest_asyncio
 
 load_dotenv()
 
@@ -19,16 +20,16 @@ load_dotenv()
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import Tool
-import langwatch 
+# import langwatch 
 
 # --- NeMo Guardrails Imports ---
 from nemoguardrails import RailsConfig
 from nemoguardrails.integrations.langchain.runnable_rails import RunnableRails
 
-langwatch.setup()
+# langwatch.setup()
 
 # --- Smart Building Tools (Functions remain the same) ---
-@langwatch.trace( name="Get_Zone_Conditions")
+# @langwatch.trace( name="Get_Zone_Conditions")
 def get_zone_current_conditions(zone: str) -> Dict:
     """Get current IAQ and power data for a specific building zone."""
     print("🔧 Tool called: get_zone_current_conditions")
@@ -71,7 +72,7 @@ def zone_to_floor_power_meter(zone: str) -> str:
     except:
         return "1"
 
-@langwatch.trace(name="Get_All_Zones")
+# @langwatch.trace(name="Get_All_Zones")
 def get_all_zones_status(*args, **kwargs) -> Dict:
     """Get current status for all 10 zones (5 per floor)."""
     print("🔧 Tool called: get_all_zones_status")
@@ -106,7 +107,7 @@ def get_all_zones_status(*args, **kwargs) -> Dict:
         "timestamp": datetime.now().isoformat()
     }
 
-@langwatch.trace(name="Get_Building_Energy_Status")
+# @langwatch.trace(name="Get_Building_Energy_Status")
 def get_building_energy_status(*args, **kwargs) -> Dict:
     """Get current building-wide energy consumption and daily target status."""
     print("🔧 Tool called: get_building_energy_status")
@@ -173,7 +174,7 @@ def get_recent_alerts(*args, **kwargs) -> Dict:
     except Exception as e:
         return {"alerts": [], "error": str(e)}
 
-@langwatch.trace(name="Analyze_Cross_Zone_Opportunities")
+# @langwatch.trace(name="Analyze_Cross_Zone_Opportunities")
 def analyze_cross_zone_opportunities(*args, **kwargs) -> Dict:
     """Analyze cross-zone optimization opportunities."""
     print("🔧 Tool called: analyze_cross_zone_opportunities")
@@ -228,7 +229,7 @@ def analyze_cross_zone_opportunities(*args, **kwargs) -> Dict:
     except Exception as e:
         return {"error": str(e)}
 
-@langwatch.trace(name="Get_Equipment_Health_Trends")
+# @langwatch.trace(name="Get_Equipment_Health_Trends")
 def get_equipment_health_trends(zone: str = "all", days_history: int = 7) -> Dict:
     """Analyze power consumption patterns for equipment health."""
     print("🔧 Tool called: get_equipment_health_trends")
@@ -257,7 +258,7 @@ def get_equipment_health_trends(zone: str = "all", days_history: int = 7) -> Dic
     except Exception as e:
         return {"error": str(e)}
     
-@langwatch.trace(name="Check_Safety_Thresholds")
+# @langwatch.trace(name="Check_Safety_Thresholds")
 def check_safety_thresholds(*args, **kwargs) -> Dict:
     """Check all zones against safety thresholds."""
     print("🔧 Tool called: check_safety_thresholds")
@@ -420,22 +421,25 @@ except Exception as e:
 
 
 # --- Main Processing Function ---
-@langwatch.trace(name="Building Automation Request")
+# @langwatch.trace(name="Building Automation Request")
 async def process_building_automation_request(user_query: str) -> Dict:
     """Processes a user query using the guarded LangChain AgentExecutor with LangWatch tracing."""
     try:
         # Get the trace context from the decorator and create a callback handler
-        current_trace = langwatch.get_current_trace()
-        langchain_callback = current_trace.get_langchain_callback()
+        # current_trace = langwatch.get_current_trace()
+        # langchain_callback = current_trace.get_langchain_callback()
         
-        # Optionally add metadata to the parent trace
-        current_trace.update(metadata={"user_id": "interactive_user"})
+        # # Optionally add metadata to the parent trace
+        # current_trace.update(metadata={"user_id": "interactive_user"})
 
         # Pass the callback handler to the agent invocation
-        response = await final_executor.ainvoke(
-            {"input": user_query},
-            config={"callbacks": [langchain_callback]}
-        )
+        # response = await final_executor.ainvoke(
+        #     {"input": user_query},
+        #     config={"callbacks": [langchain_callback]}
+        # )
+
+        response = await final_executor.ainvoke({"input": user_query})  
+
         return {
             "query": user_query,
             "ai_response": response.get("output", "No response generated."),
@@ -479,7 +483,6 @@ if __name__ == "__main__":
 
     try:
         if asyncio.get_event_loop().is_running():
-            import nest_asyncio
             nest_asyncio.apply()
         
         asyncio.run(main())

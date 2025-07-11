@@ -25,3 +25,4 @@ pypdf>=3.0.0
 ollama
 langchain-ollama
 langsmith
+nemoguardrails
